@@ -54,26 +54,51 @@ imbalance between sub-types (e.g. Class 3 has ~10x fewer samples than Class 4).
 
 ## Results
 
-Stage 1 binary anomaly detection (Normal vs. Anomaly) on the held-out test set:
+**Stage 1 — Binary anomaly detection (Normal vs. Anomaly)** on the held-out test set:
 
 | Metric | Normal (0) | Anomaly (1–4) |
 |---|---|---|
-| Precision | 0.91 | 0.39 |
-| Recall | 0.80 | 0.61 |
-| F1-score | 0.85 | 0.47 |
+| Precision | 0.99 | 0.98 |
+| Recall | 1.00 | 0.95 |
+| F1-score | 0.99 | 0.96 |
 
-Overall accuracy: **77%** | Macro F1: **0.66**
+Overall accuracy: **99%** | Macro F1: **0.98**
 
-```
-Confusion Matrix
-[[14494  3624]
- [ 1474  2300]]
-```
+**Stage 2 — Anomaly sub-type classification**, evaluated in isolation on true
+anomalies only (i.e. assuming Stage 1 routed them correctly):
 
-The reconstruction-error threshold trades off precision and recall — lowering
-it catches more true anomalies (better recall) at the cost of more false
-positives on normal beats. See the notebook for the full sweep and Stage 2
-sub-type classification report.
+| Class | Precision | Recall | F1-score | Support |
+|---|---|---|---|---|
+| 1 | 0.97 | 0.95 | 0.96 | 556 |
+| 2 | 0.98 | 0.95 | 0.96 | 1,448 |
+| 3 | 0.66 | 0.96 | 0.78 | 162 |
+| 4 | 0.99 | 0.99 | 0.99 | 1,608 |
+
+Overall accuracy: **96%** | Macro F1: **0.92**
+
+Class 3 (the smallest and most imbalanced class, ~641 training samples) has
+noticeably lower precision despite high recall — the class-weighted loss
+pushes the model to catch nearly all true Class 3 beats, at the cost of some
+false positives from other classes.
+
+**Complete end-to-end pipeline** — Stage 1 routes each beat, and only the ones
+flagged as anomalies are passed to Stage 2, so errors in Stage 1 routing
+propagate through:
+
+| Class | Precision | Recall | F1-score | Support |
+|---|---|---|---|---|
+| Normal (0) | 0.99 | 1.00 | 0.99 | 18,118 |
+| 1 | 0.88 | 0.79 | 0.83 | 556 |
+| 2 | 0.98 | 0.93 | 0.95 | 1,448 |
+| 3 | 0.67 | 0.81 | 0.74 | 162 |
+| 4 | 0.99 | 0.98 | 0.99 | 1,608 |
+
+Overall accuracy: **98%** | Macro F1: **0.90** | Weighted F1: **0.98**
+
+The gap between Stage 2's isolated performance (96% acc) and the full
+pipeline's performance (98% overall, but lower per-class recall on 1 and 3)
+shows the compounding effect of Stage 1 misrouting a small number of true
+anomalies as normal before they ever reach Stage 2.
 
 ## Project Structure
 
