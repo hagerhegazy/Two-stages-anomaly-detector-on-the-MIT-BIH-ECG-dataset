@@ -15,7 +15,7 @@ this project splits the problem into two stages:
    (high reconstruction error) is flagged as a potential anomaly. This means the
    model never needs labeled anomalies to learn what "normal" looks like.
 
-2. **Stage 2 — Supervised sub-type classification.**
+2. **Stage 2 — Supervised sub-type classification (Residual 1D-CNN (ResNet)).**
    Heartbeats flagged as anomalies in Stage 1 are passed to a second classifier
    trained on the four abnormal heartbeat classes (1–4), so the pipeline doesn't
    just say "abnormal" — it predicts *which kind* of abnormality it likely is.
